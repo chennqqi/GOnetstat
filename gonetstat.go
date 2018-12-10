@@ -253,17 +253,17 @@ func netstat(t string) ([]Process, error) {
 
 func Tcp() ([]Process, error) {
 	// Get a slice of Process type with TCP data
-	return netstat("udp6")
+	return netstat("udp4")
 }
 
 func Udp() ([]Process, error) {
 	// Get a slice of Process type with UDP data
-	return netstat("udp6")
+	return netstat("udp4")
 }
 
 func Tcp6() ([]Process, error) {
 	// Get a slice of Process type with TCP6 data
-	return netstat("udp6")
+	return netstat("tcp6")
 }
 
 func Udp6() ([]Process, error) {
