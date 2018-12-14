@@ -42,6 +42,38 @@ var STATE = map[string]string{
 	"0B": "CLOSING",
 }
 
+type iNodes map[string]string
+
+func buildNodes() iNodes {
+	d, err := filepath.Glob("/proc/[0-9]*/fd/[0-9]*")
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	inodes := make(map[string]string)
+	re := regexp.MustCompile("[0-9]+")
+
+	for _, item := range d {
+		if path, err := os.Readlink(item); err == nil {
+			if inode := re.FindString(path); len(inode) > 0 {
+				inodes[inode] = item
+			}
+
+		}
+	}
+
+	return inodes
+}
+
+func (inodes iNodes) getPid(inode string) string {
+	if link, found := inodes[inode]; found {
+		return strings.Split(link, "/")[2]
+	}
+
+	return ""
+}
+
 type Process struct {
 	User        string
 	Name        string
@@ -205,6 +237,7 @@ func netstat(t string) ([]Process, error) {
 	if err != nil {
 		return nil, err
 	}
+	inodes := buildNodes()
 
 	for _, line := range data {
 
@@ -239,7 +272,8 @@ func netstat(t string) ([]Process, error) {
 			uid = getUser(line_array[7])
 		}
 		if len(line_array) > 9 {
-			pid, _ = findPid(line_array[9])
+			// pid, _ = findPid(line_array[9])
+			pid = inodes.getPid(line_array[9])
 		}
 		exe = getProcessExe(pid)
 		name = getProcessName(exe)
