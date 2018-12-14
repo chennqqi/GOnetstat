@@ -285,6 +285,199 @@ func netstat(t string) ([]Process, error) {
 	return Processes, nil
 }
 
+func All() ([]*Process, []*Process, []*Process, []*Process, error) {
+	// Return a array of Process with Name, Ip, Port, State .. etc
+	// Require Root acess to get information about some processes.
+
+	var tcpProcesses []*Process
+	tcpData, err := getData("tcp")
+	if err != nil {
+		return nil, nil, nil, nil, err
+	}
+	var tcp6Processes []*Process
+	tcp6Data, err := getData("tcp6")
+	if err != nil {
+		return nil, nil, nil, nil, err
+	}
+	var udpProcesses []*Process
+	udpData, err := getData("udp")
+	if err != nil {
+		return nil, nil, nil, nil, err
+	}
+	var udp6Processes []*Process
+	udp6Data, err := getData("udp6")
+	if err != nil {
+		return nil, nil, nil, nil, err
+	}
+	inodes := buildNodes()
+
+	for _, line := range tcpData {
+		// local ip and port
+		line_array := removeEmpty(strings.Split(strings.TrimSpace(line), " "))
+		ip_port := strings.Split(line_array[1], ":")
+		var ip, fip, state, uid, pid, exe, name string
+		var port, fport int64
+		if len(ip_port) > 0 {
+			ip = convertIp(ip_port[0])
+		}
+		if len(ip_port) > 1 {
+			port, _ = hexToDec(ip_port[1])
+		}
+
+		// foreign ip and port
+		if len(line_array) > 2 {
+			fip_port := strings.Split(line_array[2], ":")
+
+			if len(fip_port) > 0 {
+				fip = convertIp(fip_port[0])
+			}
+			if len(fip_port) > 1 {
+				fport, _ = hexToDec(fip_port[1])
+			}
+		}
+
+		if len(line_array) > 3 {
+			state = STATE[line_array[3]]
+		}
+		if len(line_array) > 7 {
+			uid = getUser(line_array[7])
+		}
+		if len(line_array) > 9 {
+			// pid, _ = findPid(line_array[9])
+			pid = inodes.getPid(line_array[9])
+		}
+		exe = getProcessExe(pid)
+		name = getProcessName(exe)
+
+		tcpProcesses = append(tcpProcesses, &Process{uid, name, pid, exe, state, ip, port, fip, fport})
+	}
+
+	for _, line := range tcp6Data {
+		// local ip and port
+		line_array := removeEmpty(strings.Split(strings.TrimSpace(line), " "))
+		ip_port := strings.Split(line_array[1], ":")
+		var ip, fip, state, uid, pid, exe, name string
+		var port, fport int64
+		if len(ip_port) > 0 {
+			ip = convertIp(ip_port[0])
+		}
+		if len(ip_port) > 1 {
+			port, _ = hexToDec(ip_port[1])
+		}
+
+		// foreign ip and port
+		if len(line_array) > 2 {
+			fip_port := strings.Split(line_array[2], ":")
+
+			if len(fip_port) > 0 {
+				fip = convertIp(fip_port[0])
+			}
+			if len(fip_port) > 1 {
+				fport, _ = hexToDec(fip_port[1])
+			}
+		}
+
+		if len(line_array) > 3 {
+			state = STATE[line_array[3]]
+		}
+		if len(line_array) > 7 {
+			uid = getUser(line_array[7])
+		}
+		if len(line_array) > 9 {
+			// pid, _ = findPid(line_array[9])
+			pid = inodes.getPid(line_array[9])
+		}
+		exe = getProcessExe(pid)
+		name = getProcessName(exe)
+
+		tcp6Processes = append(tcp6Processes, &Process{uid, name, pid, exe, state, ip, port, fip, fport})
+	}
+
+	for _, line := range udpData {
+		// local ip and port
+		line_array := removeEmpty(strings.Split(strings.TrimSpace(line), " "))
+		ip_port := strings.Split(line_array[1], ":")
+		var ip, fip, state, uid, pid, exe, name string
+		var port, fport int64
+		if len(ip_port) > 0 {
+			ip = convertIp(ip_port[0])
+		}
+		if len(ip_port) > 1 {
+			port, _ = hexToDec(ip_port[1])
+		}
+
+		// foreign ip and port
+		if len(line_array) > 2 {
+			fip_port := strings.Split(line_array[2], ":")
+
+			if len(fip_port) > 0 {
+				fip = convertIp(fip_port[0])
+			}
+			if len(fip_port) > 1 {
+				fport, _ = hexToDec(fip_port[1])
+			}
+		}
+
+		if len(line_array) > 3 {
+			state = STATE[line_array[3]]
+		}
+		if len(line_array) > 7 {
+			uid = getUser(line_array[7])
+		}
+		if len(line_array) > 9 {
+			// pid, _ = findPid(line_array[9])
+			pid = inodes.getPid(line_array[9])
+		}
+		exe = getProcessExe(pid)
+		name = getProcessName(exe)
+
+		udpProcesses = append(udpProcesses, &Process{uid, name, pid, exe, state, ip, port, fip, fport})
+	}
+
+	for _, line := range udp6Data {
+		// local ip and port
+		line_array := removeEmpty(strings.Split(strings.TrimSpace(line), " "))
+		ip_port := strings.Split(line_array[1], ":")
+		var ip, fip, state, uid, pid, exe, name string
+		var port, fport int64
+		if len(ip_port) > 0 {
+			ip = convertIp(ip_port[0])
+		}
+		if len(ip_port) > 1 {
+			port, _ = hexToDec(ip_port[1])
+		}
+
+		// foreign ip and port
+		if len(line_array) > 2 {
+			fip_port := strings.Split(line_array[2], ":")
+
+			if len(fip_port) > 0 {
+				fip = convertIp(fip_port[0])
+			}
+			if len(fip_port) > 1 {
+				fport, _ = hexToDec(fip_port[1])
+			}
+		}
+
+		if len(line_array) > 3 {
+			state = STATE[line_array[3]]
+		}
+		if len(line_array) > 7 {
+			uid = getUser(line_array[7])
+		}
+		if len(line_array) > 9 {
+			// pid, _ = findPid(line_array[9])
+			pid = inodes.getPid(line_array[9])
+		}
+		exe = getProcessExe(pid)
+		name = getProcessName(exe)
+
+		udp6Processes = append(udp6Processes, &Process{uid, name, pid, exe, state, ip, port, fip, fport})
+	}
+
+	return tcpProcesses, tcp6Processes, udpProcesses, udp6Processes, nil
+}
+
 func Tcp() ([]Process, error) {
 	// Get a slice of Process type with TCP data
 	return netstat("tcp")
